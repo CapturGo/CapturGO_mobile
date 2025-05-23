@@ -1,75 +1,116 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Text, View, StyleSheet, Button, Platform } from 'react-native';
+import * as Location from 'expo-location';
+import * as TaskManager from 'expo-task-manager';
+import { BACKGROUND_LOCATION_TASK } from '../../tasks/locationTask'; // Assuming this is correctly defined
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const LOCATION_TASK_NAME = BACKGROUND_LOCATION_TASK;
 
-export default function HomeScreen() {
+export default function App() {
+  const [location, setLocation] = useState<Location.LocationObject | null>(null);
+  const [isTracking, setIsTracking] = useState(false);
+
+  const requestPermissions = async () => {
+    const { status: foregroundStatus } = await Location.requestForegroundPermissionsAsync();
+    if (foregroundStatus === 'granted') {
+      const { status: backgroundStatus } = await Location.requestBackgroundPermissionsAsync();
+      if (backgroundStatus === 'granted') {
+        return true;
+      }
+    }
+    console.warn('Location permissions not fully granted.');
+    return false;
+  };
+
+  const startLocationTracking = async () => {
+    const permissionsGranted = await requestPermissions();
+    if (!permissionsGranted) {
+      console.log('Cannot start tracking without permissions.');
+      return;
+    }
+
+    await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+      accuracy: Location.Accuracy.Balanced,
+    });
+    console.log('Started background location tracking.');
+    setIsTracking(true);
+  };
+
+  const stopLocationTracking = async () => {
+    await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+    console.log('Stopped background location tracking.');
+    setIsTracking(false);
+  };
+
+  const toggleTracking = () => {
+    if (isTracking) {
+      stopLocationTracking();
+    } else {
+      startLocationTracking();
+    }
+  };
+
+  // Effect for foreground location updates (for UI display)
+  useEffect(() => {
+    let subscriber: Location.LocationSubscription | undefined;
+
+    const watchLocation = async () => {
+      const { status } = await Location.getForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        // Permissions might have been revoked or not yet requested by startLocationTracking
+        // You could call requestPermissions() here again if desired
+        return;
+      }
+      subscriber = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.High,
+          timeInterval: 1000,
+          distanceInterval: 10,
+        },
+        (newLocation) => {
+          setLocation(newLocation);
+          console.log('Received new FOREGROUND location:', newLocation.coords);
+        }
+      );
+    };
+
+    watchLocation();
+
+    return () => {
+      console.log('useEffect cleanup');
+      subscriber?.remove();
+    };
+  }, []);
+
+  // Effect to check initial tracking state
+  useEffect(() => {
+    const checkStatus = async () => {
+      const tracked = await TaskManager.isTaskRegisteredAsync(LOCATION_TASK_NAME);
+      setIsTracking(tracked);
+    };
+    checkStatus();
+  }, []);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      <Text style={styles.paragraph}>
+        {location ? `Lat: ${location.coords.latitude.toFixed(4)}, Lon: ${location.coords.longitude.toFixed(4)}` : 'Waiting for location...'}
+      </Text>
+      <Button onPress={toggleTracking} title={isTracking ? 'Stop Tracking' : 'Start Tracking'} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
+    padding: 20,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  paragraph: {
+    fontSize: 18,
+    textAlign: 'center',
+    marginBottom: 20,
   },
 });
