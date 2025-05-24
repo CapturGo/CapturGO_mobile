@@ -51,6 +51,12 @@
           "isAndroidBackgroundLocationEnabled": true,
           "isAndroidForegroundServiceEnabled": true
         }
+      ],
+      [
+      "@rnmapbox/maps",
+        {
+          "RNMapboxMapsDownloadToken": "sk.eyJ1IjoiYmh1bmFraXQiLCJhIjoiY21iMGtoNW40MHMxMDJqcjBscXE1aHN4MCJ9.Rt0FTUZVapci4ba_RzSvng"
+        }
       ]
     ],
     "experiments": {
