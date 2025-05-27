@@ -16,6 +16,8 @@ export default function MapScreen() {
 
   // Start location tracking automatically when the component mounts
   useEffect(() => {
+    let subscription: Location.LocationSubscription | null = null;
+
     (async () => {
       try {
         // Request location permissions
@@ -43,7 +45,7 @@ export default function MapScreen() {
         }
         
         // Start foreground location updates for the map
-        let subscription = await Location.watchPositionAsync(
+        subscription = await Location.watchPositionAsync(
           {
             accuracy: Location.Accuracy.High,
             timeInterval: 1000,
@@ -54,16 +56,18 @@ export default function MapScreen() {
             console.log('New foreground location:', newLocation.coords);
           }
         );
-        
-        return () => {
-          // Clean up the foreground location subscription when unmounting
-          subscription.remove();
-        };
       } catch (error) {
         console.error('Error setting up location tracking:', error);
         setErrorMsg('Failed to start location tracking');
       }
     })();
+
+    // Cleanup function
+    return () => {
+      if (subscription) {
+        subscription.remove();
+      }
+    };
   }, []);
 
   return (
@@ -88,24 +92,6 @@ export default function MapScreen() {
             visible={true}
             showsUserHeadingIndicator={true}
           />
-          {/* <MapboxGL.ShapeSource
-            id="currentLocationSource"
-            shape={{
-              type: 'Feature',
-              properties: {},
-              geometry: {
-                type: 'Point',
-                coordinates: [location.coords.longitude, location.coords.latitude]
-              }
-            }}
-          >
-            <MapboxGL.PointAnnotation
-              id="currentLocation"
-              coordinate={[location.coords.longitude, location.coords.latitude]}
-            >
-              <View style={{ width: 20, height: 20, backgroundColor: 'rgba(0, 0, 0, 0)' }} />
-            </MapboxGL.PointAnnotation>
-          </MapboxGL.ShapeSource> */}
         </MapboxGL.MapView>
       )}
     </View>
