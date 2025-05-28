@@ -1,98 +1,76 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, Button, Alert } from 'react-native';
+import { Text, View, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import { BACKGROUND_LOCATION_TASK } from '../../tasks/locationTask';
+import { supabase } from '../../utils/supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SettingsScreen() {
   const [isTracking, setIsTracking] = useState(false);
 
-  // Check if tracking is active when component mounts
   useEffect(() => {
-    const checkTrackingStatus = async () => {
+    const checkStatus = async () => {
       const tracking = await TaskManager.isTaskRegisteredAsync(BACKGROUND_LOCATION_TASK);
       setIsTracking(tracking);
     };
-    
-    checkTrackingStatus();
-    
-    // Set up an interval to check tracking status periodically
-    const interval = setInterval(checkTrackingStatus, 5000);
-    
-    return () => clearInterval(interval);
+    checkStatus();
   }, []);
 
-  // Function to stop location tracking
-  const stopLocationTracking = async () => {
+  const toggleTracking = async () => {
     try {
-      await Location.stopLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
-      console.log('Stopped background location tracking.');
-      setIsTracking(false);
-      Alert.alert('Success', 'Location tracking stopped successfully.');
+      if (isTracking) {
+        await Location.stopLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
+        setIsTracking(false);
+        Alert.alert('Success', 'Tracking stopped.');
+      } else {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert('Error', 'Location permission required.');
+          return;
+        }
+        await Location.requestBackgroundPermissionsAsync();
+        await Location.startLocationUpdatesAsync(BACKGROUND_LOCATION_TASK, {
+          accuracy: Location.Accuracy.Balanced,
+        });
+        setIsTracking(true);
+        Alert.alert('Success', 'Tracking started.');
+      }
     } catch (error) {
-      console.error('Error stopping location tracking:', error);
-      Alert.alert('Error', 'Failed to stop location tracking. Please try again.');
+      Alert.alert('Error', 'Failed to toggle tracking.');
     }
   };
-
-  // Function to restart location tracking
-  const startLocationTracking = async () => {
+  
+  const handleSignOut = async () => {
     try {
-      // First ensure we have permissions
-      const { status: foregroundStatus } = await Location.requestForegroundPermissionsAsync();
-      if (foregroundStatus !== 'granted') {
-        Alert.alert('Permission denied', 'Location permission is required for tracking.');
-        return;
-      }
-      
-      const { status: backgroundStatus } = await Location.requestBackgroundPermissionsAsync();
-      if (backgroundStatus !== 'granted') {
-        Alert.alert('Warning', 'Background location permission denied. Tracking will only work when app is open.');
-      }
-      
-      await Location.startLocationUpdatesAsync(BACKGROUND_LOCATION_TASK, {
-        accuracy: Location.Accuracy.Balanced,
-      });
-      console.log('Started background location tracking.');
-      setIsTracking(true);
-      Alert.alert('Success', 'Location tracking started successfully.');
+      // Just clear local session without waiting for server
+      await AsyncStorage.clear();
+      supabase.auth.signOut({ scope: 'local' });
     } catch (error) {
-      console.error('Error starting location tracking:', error);
-      Alert.alert('Error', 'Failed to start location tracking. Please try again.');
+      console.error('Sign out error:', error);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Location Tracking Settings</Text>
+      <Text style={styles.title}>Settings</Text>
       
-      <View style={styles.statusContainer}>
-        <Text style={styles.statusText}>
-          Status: <Text style={isTracking ? styles.activeText : styles.inactiveText}>
-            {isTracking ? 'Active' : 'Inactive'}
+        <Text style={styles.sectionTitle}>Location Tracking</Text>
+        <TouchableOpacity 
+          style={[
+            styles.button, 
+            { backgroundColor: isTracking ? '#FF3B30' : '#34C759' }
+          ]} 
+          onPress={toggleTracking}
+        >
+          <Text style={styles.buttonText}>
+            {isTracking ? "Stop Tracking" : "Start Tracking"}
           </Text>
-        </Text>
-      </View>
-      
-      <View style={styles.buttonContainer}>
-        {isTracking ? (
-          <Button 
-            title="Stop Location Tracking" 
-            onPress={stopLocationTracking} 
-            color="#FF3B30" 
-          />
-        ) : (
-          <Button 
-            title="Start Location Tracking" 
-            onPress={startLocationTracking} 
-            color="#34C759" 
-          />
-        )}
-      </View>
-      
-      <Text style={styles.infoText}>
-        When location tracking is active, your location will be tracked even when the app is in the background.
-      </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.button} onPress={handleSignOut}>
+          <Text style={styles.signOutText}>Sign Out</Text>
+        </TouchableOpacity>
     </View>
   );
 }
@@ -101,46 +79,53 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#F2F2F7',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-    marginTop: 20,
+    marginBottom: 40,
+    color: '#000',
   },
-  statusContainer: {
-    backgroundColor: 'white',
-    padding: 15,
+  section: {
+    width: '100%',
+    marginBottom: 30,
+    padding: 20,
+    backgroundColor: '#f5f5f5',
     borderRadius: 10,
-    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#e1e1e1',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     elevation: 2,
   },
-  statusText: {
-    fontSize: 18,
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 15,
+    color: '#000',
     textAlign: 'center',
   },
-  activeText: {
-    color: '#34C759',
-    fontWeight: 'bold',
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
-  inactiveText: {
-    color: '#FF3B30',
-    fontWeight: 'bold',
+  button: {
+    backgroundColor: '#FF3B30',
+    width: 200,
+    padding: 15,
+    marginBottom: 15,
+    borderRadius: 8,
+    alignItems: 'center',
   },
-  buttonContainer: {
-    marginBottom: 30,
-  },
-  infoText: {
-    fontSize: 14,
-    color: '#8E8E93',
-    textAlign: 'center',
-    marginTop: 20,
-    lineHeight: 20,
+  signOutText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

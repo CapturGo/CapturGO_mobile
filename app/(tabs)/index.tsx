@@ -3,12 +3,12 @@ import { View, StyleSheet, Text } from 'react-native';
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import { BACKGROUND_LOCATION_TASK } from '../../tasks/locationTask';
-import MapboxGL from '@rnmapbox/maps';
+import Mapbox from '@rnmapbox/maps';
 
 const LOCATION_TASK_NAME = BACKGROUND_LOCATION_TASK;
 
 // Replace with your actual Mapbox token
-MapboxGL.setAccessToken('pk.eyJ1IjoiYmh1bmFraXQiLCJhIjoiY204bXEzMGI1MGsyZDJqb21xczVwa2g2NSJ9.V7Rq9S46fNJNUI_YStsBCg');
+Mapbox.setAccessToken('pk.eyJ1IjoiYmh1bmFraXQiLCJhIjoiY204bXEzMGI1MGsyZDJqb21xczVwa2g2NSJ9.V7Rq9S46fNJNUI_YStsBCg');
 
 export default function MapScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
@@ -81,18 +81,19 @@ export default function MapScreen() {
           <Text style={styles.loadingText}>Getting your location...</Text>
         </View>
       ) : (
-        <MapboxGL.MapView style={styles.map}>
-          <MapboxGL.Camera
+        <Mapbox.MapView style={styles.map}>
+          <Mapbox.Camera
             zoomLevel={16}
             centerCoordinate={[location.coords.longitude, location.coords.latitude]}
             animationMode="flyTo"
             animationDuration={1000}
           />
-          <MapboxGL.UserLocation
+          <Mapbox.LocationPuck
             visible={true}
-            showsUserHeadingIndicator={true}
+            puckBearingEnabled={true}
+            puckBearing="heading"
           />
-        </MapboxGL.MapView>
+        </Mapbox.MapView>
       )}
     </View>
   );
