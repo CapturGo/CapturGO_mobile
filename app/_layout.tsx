@@ -5,7 +5,6 @@ import { Stack } from 'expo-router';
 import { supabase } from '../utils/supabase';
 import { Session } from '@supabase/supabase-js';
 import Auth from '../components/Auth';
-import '/Users/bhun/Captur/my-app/tasks/locationTask.ts';
 
 export default function Layout() {
   const [session, setSession] = useState<Session | null>(null);
@@ -34,6 +33,7 @@ export default function Layout() {
     );
   }
 
+  // NO LOCATION TRACKING HAPPENS HERE - only after authentication
   if (!session) {
     return (
       <View style={{ flex: 1, backgroundColor: '#000' }}>

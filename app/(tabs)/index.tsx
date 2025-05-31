@@ -2,70 +2,65 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
-import { BACKGROUND_LOCATION_TASK } from '../../tasks/locationTask';
+import { BACKGROUND_LOCATION_TASK, initializeLocationTask } from '../../tasks/locationTask';
 import Mapbox from '@rnmapbox/maps';
 
-const LOCATION_TASK_NAME = BACKGROUND_LOCATION_TASK;
-
-// Replace with your actual Mapbox token
 Mapbox.setAccessToken('pk.eyJ1IjoiYmh1bmFraXQiLCJhIjoiY204bXEzMGI1MGsyZDJqb21xczVwa2g2NSJ9.V7Rq9S46fNJNUI_YStsBCg');
 
 export default function MapScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Start location tracking automatically when the component mounts
   useEffect(() => {
     let subscription: Location.LocationSubscription | null = null;
 
     (async () => {
       try {
-        // Request location permissions
+        // Initialize location task only when actually needed (after auth)
+        initializeLocationTask();
+        
+        // Request permissions first
         const { status: foregroundStatus } = await Location.requestForegroundPermissionsAsync();
         if (foregroundStatus !== 'granted') {
           setErrorMsg('Permission to access location was denied');
           return;
         }
+
+        // Check if background tracking is active
+        const isBackgroundTracking = await TaskManager.isTaskRegisteredAsync(BACKGROUND_LOCATION_TASK);
         
-        const { status: backgroundStatus } = await Location.requestBackgroundPermissionsAsync();
-        if (backgroundStatus !== 'granted') {
-          setErrorMsg('Background location permission denied');
-          // Continue anyway with just foreground permissions
-        }
-        
-        // Check if tracking is already active
-        const isTracking = await TaskManager.isTaskRegisteredAsync(LOCATION_TASK_NAME);
-        
-        // Start background tracking if not already tracking
-        if (!isTracking) {
-          await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
-            accuracy: Location.Accuracy.Balanced,
-          });
-          console.log('Started background location tracking automatically');
-        }
-        
-        // Start foreground location updates for the map
-        subscription = await Location.watchPositionAsync(
-          {
+        if (isBackgroundTracking) {
+          // If background tracking is active, just get current position once
+          const currentLocation = await Location.getCurrentPositionAsync({
             accuracy: Location.Accuracy.High,
-            timeInterval: 1000,
-            distanceInterval: 5,
-          },
-          (newLocation) => {
-            setLocation(newLocation);
-            console.log('New foreground location:', newLocation.coords);
-          }
-        );
+          });
+          setLocation(currentLocation);
+          console.log('Using existing background tracking');
+        } else {
+          // Only start foreground tracking if background tracking is not active
+          subscription = await Location.watchPositionAsync(
+            {
+              accuracy: Location.Accuracy.High,
+              timeInterval: 2000,
+              distanceInterval: 10,
+            },
+            (newLocation) => {
+              setLocation(newLocation);
+              console.log('Location update:', newLocation.coords);
+            }
+          );
+          console.log('Started foreground tracking (no background tracking active)');
+        }
       } catch (error) {
         console.error('Error setting up location tracking:', error);
         setErrorMsg('Failed to start location tracking');
       }
     })();
 
-    // Cleanup function
     return () => {
       if (subscription) {
         subscription.remove();
+        console.log('Cleaned up foreground tracking');
       }
     };
   }, []);
