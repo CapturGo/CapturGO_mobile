@@ -33,7 +33,6 @@ export default function Layout() {
     );
   }
 
-  // NO LOCATION TRACKING HAPPENS HERE - only after authentication
   if (!session) {
     return (
       <View style={{ flex: 1, backgroundColor: '#000' }}>

@@ -16,14 +16,14 @@ export const useLocationHistory = () => {
   }, []);
 
   const loadHistory = async () => {
-    const history = await fetchLocationHistory(500); // Limit for performance
+    const history = await fetchLocationHistory(); 
     const coordinates = history.map((point: LocationPoint) => [point.longitude, point.latitude]);
     setPathCoordinates(coordinates);
   };
 
   const addNewLocation = (location: Location.LocationObject) => {
     const newCoord = [location.coords.longitude, location.coords.latitude];
-    setPathCoordinates(prev => [...prev, newCoord].slice(-500)); // Keep last 500 points
+    setPathCoordinates(prev => [...prev, newCoord]);
   };
 
   const getGeoJSONLine = () => ({
