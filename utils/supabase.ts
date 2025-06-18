@@ -2,9 +2,9 @@ import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 import * as Location from 'expo-location';
-import {  getDebugOffline } from '../debugConfig';
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
+
+const supabaseUrl = "https://wsdbqgftjponuhbidcqn.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndzZGJxZ2Z0anBvbnVoYmlkY3FuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUwNDMzOTMsImV4cCI6MjA2MDYxOTM5M30.eFm9EX2yF07tz4o36zNq52got77ThJUyY3alav1pHIk";
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -17,9 +17,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 export const logLocationToDatabase = async (location: Location.LocationObject): Promise<boolean> => {
   try {
-    if (await getDebugOffline()) {
-      throw new Error('Simulated offline mode');
-    }
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
 
@@ -41,11 +38,6 @@ export const logLocationToDatabase = async (location: Location.LocationObject): 
     return true;
   } catch (error) {
     console.error('Log error:', error);
-    // Try to store locally if possible
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) await storeLocationLocally(location, user.id);
-    } catch {}
     return false;
   }
 };
@@ -53,7 +45,6 @@ export const logLocationToDatabase = async (location: Location.LocationObject): 
 const storeLocationLocally = async (location: Location.LocationObject, userId: string) => {
   try {
     const key = `pending_location_${Date.now()}`;
-    console.log('Storing location locally:', key, location);
     await AsyncStorage.setItem(key, JSON.stringify({
       user_id: userId,
       latitude: location.coords.latitude,
