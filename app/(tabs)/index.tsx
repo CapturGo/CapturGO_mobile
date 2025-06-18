@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import * as Location from 'expo-location';
-import * as TaskManager from 'expo-task-manager';
-import { BACKGROUND_LOCATION_TASK, initializeLocationTask, logForegroundLocation } from '../../tasks/locationTask';
+import { BACKGROUND_LOCATION_TASK, initializeLocationTask, isLocationTaskRegistered, startLocationTracking } from '../../tasks/locationTask';
 import { syncPendingLocations } from '../../utils/supabase';
 import { useLocationHistory } from '../../hooks/useLocationHistory';
 import Mapbox from '@rnmapbox/maps';
 
-Mapbox.setAccessToken('pk.eyJ1IjoiYmh1bmFraXQiLCJhIjoiY204bXEzMGI1MGsyZDJqb21xczVwa2g2NSJ9.V7Rq9S46fNJNUI_YStsBCg');
+Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN || '');
 
 export default function MapScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
@@ -21,30 +20,29 @@ export default function MapScreen() {
       try {
         initializeLocationTask();
         await syncPendingLocations();
-        
+
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
           setErrorMsg('Location permission denied');
           return;
         }
 
-        const isBackgroundActive = await TaskManager.isTaskRegisteredAsync(BACKGROUND_LOCATION_TASK);
-        
+        const isBackgroundActive = await isLocationTaskRegistered();
+
         if (isBackgroundActive) {
+          // Only fetch current location for display, background task handles logging
           const currentLocation = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
           setLocation(currentLocation);
         } else {
-          subscription = await Location.watchPositionAsync(
-            {
-              accuracy: Location.Accuracy.High,
-              timeInterval: 5000,
-              distanceInterval: 20,
-            },
-            async (newLocation) => {
+          // Use unified tracking utility for foreground
+          const sub = await startLocationTracking({
+            background: false,
+            onLocationUpdate: (newLocation) => {
               setLocation(newLocation);
-              await logForegroundLocation(newLocation, addNewLocation);
-            }
-          );
+              addNewLocation(newLocation);
+            },
+          });
+          subscription = sub ?? null;
         }
       } catch (error) {
         console.error('Location setup error:', error);
