@@ -3,8 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 import * as Location from 'expo-location';
 
-const supabaseUrl = "https://wsdbqgftjponuhbidcqn.supabase.co";
-const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndzZGJxZ2Z0anBvbnVoYmlkY3FuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUwNDMzOTMsImV4cCI6MjA2MDYxOTM5M30.eFm9EX2yF07tz4o36zNq52got77ThJUyY3alav1pHIk";
+const supabaseUrl = "";
+const supabaseAnonKey = "";
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -26,6 +26,7 @@ export const logLocationToDatabase = async (location: Location.LocationObject): 
         user_id: user.id,
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
+        speed: location.coords.speed
       });
 
     if (error) {
@@ -72,7 +73,6 @@ export const syncPendingLocations = async (): Promise<void> => {
     console.error('Sync failed:', error);
   }
 };
-
 export const fetchLocationHistory = async (limit: number = 1000) => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -89,5 +89,29 @@ export const fetchLocationHistory = async (limit: number = 1000) => {
   } catch (error) {
     console.error('Fetch history failed:', error);
     return [];
+  }
+};
+
+// Increment token balance when user visits a new hexagon
+export const rewardUserForNewHexagon = async (tokenAmount: number = 1): Promise<boolean> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+    
+    // Use SQL increment to avoid race conditions
+    const { error } = await supabase.rpc('increment_token_balance', {
+      user_id: user.id,
+      amount: tokenAmount
+    });
+    
+    if (error) {
+      console.error('Token reward failed:', error.message);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Token reward error:', error);
+    return false;
   }
 };

@@ -9,7 +9,8 @@ import {
   ActivityIndicator, 
   ScrollView,
   SafeAreaView,
-  StyleSheet 
+  StyleSheet,
+  Image
 } from 'react-native';
 import { supabase } from '../utils/supabase';
 
@@ -85,6 +86,11 @@ export default function Auth() {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.formContainer}>
+          <Image 
+            source={require('../assets/images/capturlogo.png')} 
+            style={styles.logo} 
+            resizeMode="contain"
+          />
           <Text style={styles.title}>
             {isSignUp ? 'Create Account' : 'Sign In'}
           </Text>
@@ -173,6 +179,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  logo: {
+    width: 150,
+    height: 60,
+    alignSelf: 'center',
+    marginBottom: 20,
   },
   scrollContent: {
     flexGrow: 1,

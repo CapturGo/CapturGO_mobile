@@ -1,47 +1,43 @@
 {
   "expo": {
-    "name": "my-app",
-    "slug": "my-app",
+    "name": "CapturGO",
+    "slug": "capturgo",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "icon": "./assets/images/capturlogo.png",
+    "scheme": "capturgo",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/images/capturlogo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.bhun.capturgoapp",
+      "bundleIdentifier": "com.capturnetwork.capturgo",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "This app uses your location to display it on the map and track your position while you are using the app.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app uses your location in the background to continuously track and record your position even when the app is closed.",
+        "NSLocationWhenInUseUsageDescription": "This app uses your location to display it on the map and track your position while you are using the app to reward you with tokens.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app uses your location in the background to continuously track and record your position even when the app is closed to reward you with tokens.",
         "UIBackgroundModes": [
           "location",
+          "fetch",
+          "location",
           "fetch"
-        ]
+        ],
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
       "permissions": [
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_BACKGROUND_LOCATION",
-        "android.permission.FOREGROUND_SERVICE"
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION"
       ],
-      "package": "com.bhun.capturgoapp"
+      "package": "com.capturnetwork.capturgo"
     },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
-    },
+    "web": {},
     "plugins": [
       "expo-router",
       [
@@ -53,15 +49,20 @@
         }
       ],
       [
-      "@rnmapbox/maps",
+        "@rnmapbox/maps",
         {
-          "RNMapboxMapsDownloadToken": "sk.eyJ1IjoiYmh1bmFraXQiLCJhIjoiY21iMGtoNW40MHMxMDJqcjBscXE1aHN4MCJ9.Rt0FTUZVapci4ba_RzSvng",
-          "RNMapboxMapsVersion": "11.0.0"
+          "RNMapboxMapsDownloadToken": ""
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d7b3bd35-9540-4568-be05-4f12e0415185"
+      }
     }
   }
 }

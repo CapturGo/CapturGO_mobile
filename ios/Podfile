@@ -16,7 +16,7 @@ prepare_react_native_project!
 # @generated begin @rnmapbox/maps-rnmapboxmapsimpl - expo prebuild (DO NOT MODIFY) sync-0827c5766d67698b43a606eed3991302021cf996
 $RNMapboxMapsDownloadToken = 'sk.eyJ1IjoiYmh1bmFraXQiLCJhIjoiY21iMGtoNW40MHMxMDJqcjBscXE1aHN4MCJ9.Rt0FTUZVapci4ba_RzSvng'
 # @generated end @rnmapbox/maps-rnmapboxmapsimpl
-target 'myapp' do
+target 'CapturGO' do
   use_expo_modules!
 
   if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
