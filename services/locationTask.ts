@@ -1,6 +1,6 @@
 import * as TaskManager from 'expo-task-manager';
 import * as Location from 'expo-location';
-import { logLocationToDatabase } from '../utils/supabase';
+import { logLocationToDatabase } from './supabase';
 
 export const BACKGROUND_LOCATION_TASK = 'background-location-task';
 

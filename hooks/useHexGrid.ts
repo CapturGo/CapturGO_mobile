@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import * as Location from 'expo-location';
 import { generateHexGrid, isPointInPolygon } from '../utils/hexGrid';
 import * as turf from '@turf/turf';
-import { fetchLocationHistory, rewardUserForNewHexagon } from '../utils/supabase';
+import { fetchLocationHistory, rewardUserForNewHexagon } from '../services/supabase';
 
 // Constants
 const HEX_SIZE_KM = 0.1; // 100 meters per hexagon

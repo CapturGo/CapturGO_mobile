@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Stack } from 'expo-router';
-import { supabase } from '../utils/supabase';
+import { supabase } from '../services/supabase';
 import { Session } from '@supabase/supabase-js';
 import Auth from '../components/Auth';
 
