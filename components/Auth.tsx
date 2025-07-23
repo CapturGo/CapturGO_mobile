@@ -12,7 +12,7 @@ import {
   StyleSheet,
   Image
 } from 'react-native';
-import { supabase } from '../services/supabase';
+import { supabase } from '../utils/supabase';
 
 // Handle auth refresh
 AppState.addEventListener('change', (state) => {

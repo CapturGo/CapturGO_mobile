@@ -52,7 +52,7 @@
     <key>NSLocationAlwaysUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your location</string>
     <key>NSLocationWhenInUseUsageDescription</key>
-    <string>This app uses your location to display it on the map and track your position while you are using the app to reward you with tokens.</string>
+    <string>This app uses your location to display it on the map and track your position while you are using the app.</string>
     <key>NSUserActivityTypes</key>
     <array>
       <string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>
