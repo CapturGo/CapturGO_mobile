@@ -53,8 +53,7 @@
         {
           "RNMapboxMapsDownloadToken": ""
         }
-      ],
-      "expo-web-browser"
+      ]
     ],
     "experiments": {
       "typedRoutes": true
