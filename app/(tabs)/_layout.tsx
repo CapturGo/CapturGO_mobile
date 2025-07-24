@@ -8,7 +8,7 @@ export default function TabLayout() {
       headerShown: false
     }}>
       <Tabs.Screen
-        name="index"
+        name="CapturGo"
         options={{
           title: 'Home',
           tabBarIcon: ({ color }) => <MaterialCommunityIcons size={28} name="map" color={color} />,

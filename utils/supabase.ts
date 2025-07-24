@@ -2,9 +2,14 @@ import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 import * as Location from 'expo-location';
+// import Constants from 'expo-constants';
 
-const supabaseUrl = "";
-const supabaseAnonKey = "";
+const supabaseUrl = 'https://wsdbqgftjponuhbidcqn.supabase.co';
+// TODO: Replace with your actual Supabase anon/public key
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndzZGJxZ2Z0anBvbnVoYmlkY3FuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUwNDMzOTMsImV4cCI6MjA2MDYxOTM5M30.eFm9EX2yF07tz4o36zNq52got77ThJUyY3alav1pHIk';
+
+console.log("supabaseUrl:", supabaseUrl);
+console.log("supabaseAnonKey:", supabaseAnonKey);
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -34,8 +39,6 @@ export const logLocationToDatabase = async (location: Location.LocationObject): 
       await storeLocationLocally(location, user.id);
       return false;
     }
-
-    console.log('Location logged:', location.coords.latitude, location.coords.longitude);
     return true;
   } catch (error) {
     console.error('Log error:', error);

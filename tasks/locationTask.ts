@@ -4,23 +4,24 @@ import { logLocationToDatabase } from '../utils/supabase';
 
 export const BACKGROUND_LOCATION_TASK = 'background-location-task';
 
-export const initializeLocationTask = () => {
-  if (!TaskManager.isTaskDefined(BACKGROUND_LOCATION_TASK)) {
-    TaskManager.defineTask(BACKGROUND_LOCATION_TASK, async ({ data, error }) => {
-      if (error) {
-        console.error('Background task error:', error.message);
-        return;
+// Always define the background location task at the top level
+if (!TaskManager.isTaskDefined(BACKGROUND_LOCATION_TASK)) {
+  TaskManager.defineTask(BACKGROUND_LOCATION_TASK, async ({ data, error }) => {
+    if (error) {
+      console.error('Background task error:', error.message);
+      return;
+    }
+    if (data) {
+      const { locations } = data as { locations: Location.LocationObject[] };
+      for (const location of locations) {
+        await logLocationToDatabase(location);
       }
-      
-      if (data) {
-        const { locations } = data as { locations: Location.LocationObject[] };
-        for (const location of locations) {
-          await logLocationToDatabase(location);
-        }
-      }
-    });
-  }
-};
+    }
+  });
+}
+
+// initializeLocationTask is now a no-op for compatibility
+export const initializeLocationTask = () => {};
 
 export const logForegroundLocation = async (location: Location.LocationObject, onLocationUpdate?: (location: Location.LocationObject) => void) => {
   await logLocationToDatabase(location);

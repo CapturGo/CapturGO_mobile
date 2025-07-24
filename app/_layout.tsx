@@ -5,6 +5,7 @@ import { Stack } from 'expo-router';
 import { supabase } from '../utils/supabase';
 import { Session } from '@supabase/supabase-js';
 import Auth from '../components/Auth';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function Layout() {
   const [session, setSession] = useState<Session | null>(null);
@@ -27,24 +28,30 @@ export default function Layout() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
-        <ActivityIndicator size="large" color="#935EFF" />
-      </View>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
+          <ActivityIndicator size="large" color="#935EFF" />
+        </View>
+      </GestureHandlerRootView>
     );
   }
 
   if (!session) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#000' }}>
-        <StatusBar style="light" />
-        <Auth />
-      </View>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View style={{ flex: 1, backgroundColor: '#000' }}>
+          <StatusBar style="light" />
+          <Auth />
+        </View>
+      </GestureHandlerRootView>
     );
   }
 
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    </Stack>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+    </GestureHandlerRootView>
   );
 }
